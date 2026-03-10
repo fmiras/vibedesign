@@ -23,6 +23,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA000001GLTFKIT200000001 /* GLTFKit2 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +66,7 @@
 			);
 			name = VibeDesign;
 			packageProductDependencies = (
+				AA000001GLTFKIT200000002 /* GLTFKit2 */,
 			);
 			productName = VibeDesign;
 			productReference = 9685FE042F5E1E320035FE1D /* VibeDesign.app */;
@@ -94,6 +96,9 @@
 			);
 			mainGroup = 9685FDFB2F5E1E320035FE1D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AA000001GLTFKIT200000003 /* XCRemoteSwiftPackageReference "GLTFKit2" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9685FE052F5E1E320035FE1D /* Products */;
 			projectDirPath = "";
@@ -254,6 +259,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SpaceDesign needs camera access to photograph objects for 3D model generation.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -298,6 +304,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SpaceDesign needs camera access to photograph objects for 3D model generation.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -351,6 +358,32 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA000001GLTFKIT200000003 /* XCRemoteSwiftPackageReference "GLTFKit2" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/warrenm/GLTFKit2.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA000001GLTFKIT200000002 /* GLTFKit2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA000001GLTFKIT200000003 /* XCRemoteSwiftPackageReference "GLTFKit2" */;
+			productName = GLTFKit2;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXBuildFile section */
+		AA000001GLTFKIT200000001 /* GLTFKit2 in Frameworks */ = {
+			isa = PBXBuildFile;
+			productRef = AA000001GLTFKIT200000002 /* GLTFKit2 */;
+		};
+/* End PBXBuildFile section */
 	};
 	rootObject = 9685FDFC2F5E1E320035FE1D /* Project object */;
 }
