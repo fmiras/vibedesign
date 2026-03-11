@@ -42,9 +42,31 @@ final class CameraManager: NSObject {
         session.startRunning()
     }
 
+    var isTorchOn = false
+
     func stop() {
         guard session.isRunning else { return }
         session.stopRunning()
+    }
+
+    func toggleTorch() {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+              device.hasTorch
+        else { return }
+
+        do {
+            try device.lockForConfiguration()
+            if device.torchMode == .on {
+                device.torchMode = .off
+                isTorchOn = false
+            } else {
+                try device.setTorchModeOn(level: AVCaptureDevice.maxAvailableTorchLevel)
+                isTorchOn = true
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("Torch toggle failed: \(error)")
+        }
     }
 
     func capturePhoto() async throws -> Data {

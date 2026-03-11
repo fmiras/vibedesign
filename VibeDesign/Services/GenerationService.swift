@@ -3,8 +3,10 @@ import Foundation
 struct GenerationService {
     private static let baseURL = "https://www.fmiras.com/api/spacedesign/prediction"
 
-    /// Set to `true` during development to use mocked responses (no Replicate credits burned).
-    static var testMode = true
+    /// Reads test mode from UserDefaults (toggled in Settings).
+    static var testMode: Bool {
+        UserDefaults.standard.object(forKey: "testMode") as? Bool ?? true
+    }
 
     /// Creates a prediction and polls until it completes.
     static func generate3DModel(from publicUrl: String) async throws -> PredictionResponse {

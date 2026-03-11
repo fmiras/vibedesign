@@ -2,10 +2,16 @@ import SwiftUI
 
 struct ProcessingView: View {
     @Bindable var item: SpaceItem
+    var pendingImageData: Data?
     @Environment(\.dismiss) private var dismiss
     @State private var generationTask: Task<Void, Never>?
     @State private var error: String?
     @State private var navigateToDetail = false
+    @State private var phase: ProcessingPhase = .uploading
+
+    enum ProcessingPhase {
+        case uploading, generating
+    }
 
     var body: some View {
         NavigationStack {
@@ -17,13 +23,13 @@ struct ProcessingView: View {
                 }
             }
             .padding()
-            .navigationTitle("Generating 3D Model")
+            .navigationTitle(phase == .uploading ? "Uploading" : "Generating 3D Model")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         generationTask?.cancel()
-                        if item.status == "generating" {
+                        if item.status == "generating" || item.status == "uploading" {
                             item.status = "failed"
                         }
                         dismiss()
@@ -34,7 +40,7 @@ struct ProcessingView: View {
                 ModelDetailView(item: item)
             }
             .task {
-                await generate()
+                await uploadAndGenerate()
             }
         }
     }
@@ -43,31 +49,48 @@ struct ProcessingView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            AsyncImage(url: URL(string: item.imageUrl)) { image in
-                image
+            // Show local image from data if URL not yet available
+            if let pendingImageData, let uiImage = UIImage(data: pendingImageData) {
+                Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFit()
                     .frame(maxHeight: 300)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.quaternary)
-                    .frame(height: 200)
-                    .overlay {
-                        ProgressView()
-                    }
+            } else {
+                AsyncImage(url: URL(string: item.imageUrl)) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 300)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.quaternary)
+                        .frame(height: 200)
+                        .overlay {
+                            ProgressView()
+                        }
+                }
             }
 
             VStack(spacing: 12) {
                 ProgressView()
                     .controlSize(.large)
 
-                Text("Creating your 3D model...")
-                    .font(.headline)
-
-                Text("This may take up to 2 minutes")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                switch phase {
+                case .uploading:
+                    Text("Uploading image...")
+                        .font(.headline)
+                    Text("Preparing your photo")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                case .generating:
+                    Text("Creating your 3D model...")
+                        .font(.headline)
+                    Text("This may take up to 2 minutes")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer()
@@ -82,7 +105,7 @@ struct ProcessingView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.yellow)
 
-            Text("Generation Failed")
+            Text("Failed")
                 .font(.title2.bold())
 
             Text(message)
@@ -92,7 +115,7 @@ struct ProcessingView: View {
 
             Button("Retry") {
                 error = nil
-                Task { await generate() }
+                Task { await uploadAndGenerate() }
             }
             .buttonStyle(.glassProminent)
 
@@ -100,8 +123,24 @@ struct ProcessingView: View {
         }
     }
 
-    private func generate() async {
+    private func uploadAndGenerate() async {
+        // Step 1: Upload if needed
+        if item.status == "uploading", let imageData = pendingImageData {
+            phase = .uploading
+            do {
+                let publicUrl = try await UploadService.uploadPhoto(imageData, filename: item.name)
+                item.imageUrl = publicUrl
+                item.status = "generating"
+            } catch {
+                item.status = "failed"
+                self.error = "Upload failed: \(error.localizedDescription)"
+                return
+            }
+        }
+
+        // Step 2: Generate
         guard item.status == "generating", !item.imageUrl.isEmpty else { return }
+        phase = .generating
 
         let task = Task {
             do {

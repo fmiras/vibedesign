@@ -8,6 +8,8 @@ struct ModelDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @State private var showDeleteConfirmation = false
+    @State private var showSourceImage = false
+    @State private var showFileExporter = false
     @State private var localModelURL: URL?
     @State private var isLoadingModel = false
     @State private var loadError: String?
@@ -52,9 +54,21 @@ struct ModelDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                if let modelFileUrl = item.modelFileUrl, let url = URL(string: modelFileUrl) {
-                    ShareLink(item: url) {
-                        Image(systemName: "square.and.arrow.up")
+                if item.status == "ready" {
+                    Button {
+                        showSourceImage = true
+                    } label: {
+                        Image(systemName: "photo")
+                    }
+                }
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                if localModelURL != nil {
+                    Button {
+                        showFileExporter = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
                     }
                 }
             }
@@ -69,12 +83,43 @@ struct ModelDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $showSourceImage) {
+            NavigationStack {
+                AsyncImage(url: URL(string: item.imageUrl)) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                } placeholder: {
+                    ProgressView()
+                }
+                .navigationTitle("Source Image")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { showSourceImage = false }
+                    }
+                }
+            }
+        }
         .confirmationDialog("Delete this item?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
+                // Clean up local files
+                if let imageURL = item.localImageURL {
+                    try? FileManager.default.removeItem(at: imageURL)
+                }
+                if let modelURL = item.localModelURL {
+                    try? FileManager.default.removeItem(at: modelURL)
+                }
                 modelContext.delete(item)
                 dismiss()
             }
         }
+        .fileExporter(
+            isPresented: $showFileExporter,
+            document: GLBDocument(url: localModelURL),
+            contentType: .data,
+            defaultFilename: "\(item.name.replacingOccurrences(of: ".jpg", with: "")).glb"
+        ) { _ in }
         .task {
             await downloadModelIfNeeded()
         }
@@ -103,10 +148,26 @@ struct ModelDetailView: View {
     }
 
     private func downloadModelIfNeeded() async {
-        guard item.status == "ready",
-              let urlString = item.modelFileUrl,
-              let url = URL(string: urlString),
-              localModelURL == nil
+        guard item.status == "ready", localModelURL == nil else { return }
+
+        // 1. Check persisted local GLB (Documents/models/)
+        if let localURL = item.localModelURL,
+           FileManager.default.fileExists(atPath: localURL.path) {
+            localModelURL = localURL
+            return
+        }
+
+        // 2. Check cache directory (legacy)
+        let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        let cachedPath = cacheDir.appendingPathComponent("\(item.id.uuidString).glb")
+        if FileManager.default.fileExists(atPath: cachedPath.path) {
+            localModelURL = cachedPath
+            return
+        }
+
+        // 3. Download from remote URL
+        guard let urlString = item.modelFileUrl,
+              let url = URL(string: urlString)
         else { return }
 
         isLoadingModel = true
@@ -114,13 +175,13 @@ struct ModelDetailView: View {
 
         do {
             let (tempURL, _) = try await URLSession.shared.download(from: url)
-            let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            let glbPath = cacheDir.appendingPathComponent("\(item.id.uuidString).glb")
-
-            try? FileManager.default.removeItem(at: glbPath)
-            try FileManager.default.moveItem(at: tempURL, to: glbPath)
-
-            localModelURL = glbPath
+            // Persist to Documents/models/ so it survives cache clearing
+            let filename = "\(item.id.uuidString).glb"
+            let dest = SpaceItem.modelsDirectory.appendingPathComponent(filename)
+            try? FileManager.default.removeItem(at: dest)
+            try FileManager.default.moveItem(at: tempURL, to: dest)
+            item.localModelPath = filename
+            localModelURL = dest
         } catch {
             loadError = error.localizedDescription
         }
@@ -144,6 +205,27 @@ struct ModelDetailView: View {
         } catch {
             item.status = "failed"
         }
+    }
+}
+
+import UniformTypeIdentifiers
+
+struct GLBDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.data] }
+
+    let data: Data
+
+    init?(url: URL?) {
+        guard let url, let data = try? Data(contentsOf: url) else { return nil }
+        self.data = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        data = configuration.file.regularFileContents ?? Data()
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
     }
 }
 
@@ -221,13 +303,40 @@ struct SceneKitGLBView: UIViewRepresentable {
 
                 sceneView.scene = scene
 
-                // HDR camera
-                if let camera = sceneView.pointOfView?.camera {
-                    camera.wantsHDR = true
-                    camera.bloomIntensity = 0.3
-                    camera.bloomThreshold = 0.8
-                    camera.wantsExposureAdaptation = true
-                }
+                // Frame camera to fit the model
+                let (minVec, maxVec) = scene.rootNode.boundingBox
+                let center = SCNVector3(
+                    (minVec.x + maxVec.x) / 2,
+                    (minVec.y + maxVec.y) / 2,
+                    (minVec.z + maxVec.z) / 2
+                )
+                let size = SCNVector3(
+                    maxVec.x - minVec.x,
+                    maxVec.y - minVec.y,
+                    maxVec.z - minVec.z
+                )
+                let maxDimension = max(size.x, size.y, size.z)
+
+                let camera = SCNCamera()
+                camera.wantsHDR = true
+                camera.bloomIntensity = 0.3
+                camera.bloomThreshold = 0.8
+                camera.wantsExposureAdaptation = true
+                camera.automaticallyAdjustsZRange = true
+
+                let cameraNode = SCNNode()
+                cameraNode.camera = camera
+                cameraNode.position = SCNVector3(
+                    center.x,
+                    center.y,
+                    center.z + Float(maxDimension) * 1.8
+                )
+                cameraNode.look(at: center)
+                scene.rootNode.addChildNode(cameraNode)
+                sceneView.pointOfView = cameraNode
+
+                // Set orbit target to model center
+                sceneView.defaultCameraController.target = center
             }
         }
 

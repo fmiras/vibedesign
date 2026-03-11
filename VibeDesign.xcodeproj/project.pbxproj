@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA000001GLTFKIT200000001 /* GLTFKit2 in Frameworks */ = {isa = PBXBuildFile; productRef = AA000001GLTFKIT200000002 /* GLTFKit2 */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9685FE042F5E1E320035FE1D /* VibeDesign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeDesign.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -377,13 +381,6 @@
 			productName = GLTFKit2;
 		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin PBXBuildFile section */
-		AA000001GLTFKIT200000001 /* GLTFKit2 in Frameworks */ = {
-			isa = PBXBuildFile;
-			productRef = AA000001GLTFKIT200000002 /* GLTFKit2 */;
-		};
-/* End PBXBuildFile section */
 	};
 	rootObject = 9685FDFC2F5E1E320035FE1D /* Project object */;
 }

@@ -4,12 +4,11 @@ import SwiftUI
 
 struct CaptureView: View {
     @Environment(\.modelContext) private var modelContext
-    @Namespace private var sheetTransition
+    @Environment(\.dismiss) private var dismiss
+    @Environment(BackgroundGenerationManager.self) private var generationManager
     @State private var camera = CameraManager()
     @State private var selectedPhoto: PhotosPickerItem?
-    @State private var capturedImageData: Data?
     @State private var isProcessing = false
-    @State private var processingItem: SpaceItem?
     @State private var error: String?
 
     var body: some View {
@@ -48,10 +47,6 @@ struct CaptureView: View {
                 guard let newValue else { return }
                 Task { await handlePickedPhoto(newValue) }
             }
-            .sheet(item: $processingItem) { item in
-                ProcessingView(item: item)
-                    .navigationTransition(.zoom(sourceID: "processing", in: sheetTransition))
-            }
             .alert("Error", isPresented: .init(
                 get: { error != nil },
                 set: { if !$0 { error = nil } }
@@ -82,12 +77,11 @@ struct CaptureView: View {
             .buttonStyle(.glassProminent)
             .buttonBorderShape(.circle)
             .disabled(isProcessing)
-            .matchedTransitionSource(id: "processing", in: sheetTransition)
 
             Button {
-                // placeholder for flash toggle or settings
+                camera.toggleTorch()
             } label: {
-                Image(systemName: "bolt.slash.fill")
+                Image(systemName: camera.isTorchOn ? "bolt.fill" : "bolt.slash.fill")
                     .font(.title2)
                     .frame(width: 56, height: 56)
             }
@@ -102,7 +96,7 @@ struct CaptureView: View {
 
         do {
             let data = try await camera.capturePhoto()
-            await processImage(data: data)
+            saveAndDismiss(data: data)
         } catch {
             self.error = error.localizedDescription
         }
@@ -114,17 +108,16 @@ struct CaptureView: View {
         defer { isProcessing = false }
 
         do {
-            // Load as UIImage transferable to handle HEIC/HEIF/WebP/PNG automatically
             guard let image = try await pickerItem.loadTransferable(type: PhotoPickerImage.self) else { return }
-            await processImage(data: image.data)
+            saveAndDismiss(data: image.data)
         } catch {
             self.error = error.localizedDescription
         }
         selectedPhoto = nil
     }
 
-    private func processImage(data: Data) async {
-        // Always convert to JPEG — the Replicate API requires standard image formats
+    /// Save JPEG locally, create SwiftData item, kick off background processing, and dismiss.
+    private func saveAndDismiss(data: Data) {
         guard let uiImage = UIImage(data: data),
               let imageData = uiImage.jpegData(compressionQuality: 0.85)
         else {
@@ -133,17 +126,26 @@ struct CaptureView: View {
         }
 
         let filename = "capture-\(UUID().uuidString.prefix(8)).jpg"
+
+        // Save image to Documents/images/
+        let imageFile = "\(UUID().uuidString).jpg"
+        let imageURL = SpaceItem.imagesDirectory.appendingPathComponent(imageFile)
+        do {
+            try imageData.write(to: imageURL)
+        } catch {
+            self.error = "Could not save image: \(error.localizedDescription)"
+            return
+        }
+
         let item = SpaceItem(name: filename, imageUrl: "")
+        item.status = "uploading"
+        item.localImagePath = imageFile
         modelContext.insert(item)
 
-        do {
-            let publicUrl = try await UploadService.uploadPhoto(imageData, filename: filename)
-            item.imageUrl = publicUrl
-            item.status = "generating"
-            processingItem = item
-        } catch {
-            item.status = "failed"
-            self.error = error.localizedDescription
-        }
+        // Start background upload + generation
+        generationManager.process(item)
+
+        // Dismiss capture sheet immediately
+        dismiss()
     }
 }

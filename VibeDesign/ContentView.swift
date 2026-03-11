@@ -7,18 +7,32 @@
 
 import SwiftUI
 
+enum AppTab: Hashable {
+    case gallery, ar, add, settings
+}
+
 struct ContentView: View {
+    @State private var selectedTab: AppTab = .gallery
+    @State private var showCapture = false
+
     var body: some View {
-        TabView {
-            Tab("Capture", systemImage: "camera.fill") {
-                CaptureView()
+        TabView(selection: $selectedTab) {
+            Tab("Gallery", systemImage: "square.grid.2x2.fill", value: .gallery) {
+                GalleryView(showCapture: $showCapture)
             }
 
-            Tab("Gallery", systemImage: "square.grid.2x2.fill") {
-                GalleryView()
+            Tab("AR", systemImage: "arkit", value: .ar) {
+                ARPlacementView()
+            }
+
+            Tab("Settings", systemImage: "gearshape", value: .settings) {
+                SettingsView()
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
+        .sheet(isPresented: $showCapture) {
+            CaptureView()
+        }
     }
 }
 
