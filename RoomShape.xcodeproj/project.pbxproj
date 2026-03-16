@@ -11,13 +11,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9685FE042F5E1E320035FE1D /* VibeDesign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeDesign.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9685FE042F5E1E320035FE1D /* RoomShape.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RoomShape.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9685FE062F5E1E320035FE1D /* VibeDesign */ = {
+		9685FE062F5E1E320035FE1D /* RoomShape */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = VibeDesign;
+			path = RoomShape;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -37,7 +37,7 @@
 		9685FDFB2F5E1E320035FE1D = {
 			isa = PBXGroup;
 			children = (
-				9685FE062F5E1E320035FE1D /* VibeDesign */,
+				9685FE062F5E1E320035FE1D /* RoomShape */,
 				9685FE052F5E1E320035FE1D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,7 +45,7 @@
 		9685FE052F5E1E320035FE1D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9685FE042F5E1E320035FE1D /* VibeDesign.app */,
+				9685FE042F5E1E320035FE1D /* RoomShape.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -53,9 +53,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9685FE032F5E1E320035FE1D /* VibeDesign */ = {
+		9685FE032F5E1E320035FE1D /* RoomShape */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9685FE0F2F5E1E330035FE1D /* Build configuration list for PBXNativeTarget "VibeDesign" */;
+			buildConfigurationList = 9685FE0F2F5E1E330035FE1D /* Build configuration list for PBXNativeTarget "RoomShape" */;
 			buildPhases = (
 				9685FE002F5E1E320035FE1D /* Sources */,
 				9685FE012F5E1E320035FE1D /* Frameworks */,
@@ -66,14 +66,14 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9685FE062F5E1E320035FE1D /* VibeDesign */,
+				9685FE062F5E1E320035FE1D /* RoomShape */,
 			);
-			name = VibeDesign;
+			name = RoomShape;
 			packageProductDependencies = (
 				AA000001GLTFKIT200000002 /* GLTFKit2 */,
 			);
-			productName = VibeDesign;
-			productReference = 9685FE042F5E1E320035FE1D /* VibeDesign.app */;
+			productName = RoomShape;
+			productReference = 9685FE042F5E1E320035FE1D /* RoomShape.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -91,7 +91,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 9685FDFF2F5E1E320035FE1D /* Build configuration list for PBXProject "VibeDesign" */;
+			buildConfigurationList = 9685FDFF2F5E1E320035FE1D /* Build configuration list for PBXProject "RoomShape" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -108,7 +108,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9685FE032F5E1E320035FE1D /* VibeDesign */,
+				9685FE032F5E1E320035FE1D /* RoomShape */,
 			);
 		};
 /* End PBXProject section */
@@ -279,7 +279,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fmiras.VibeDesign;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fmiras.RoomShape;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -324,7 +324,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fmiras.VibeDesign;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fmiras.RoomShape;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -343,7 +343,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9685FDFF2F5E1E320035FE1D /* Build configuration list for PBXProject "VibeDesign" */ = {
+		9685FDFF2F5E1E320035FE1D /* Build configuration list for PBXProject "RoomShape" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9685FE0D2F5E1E330035FE1D /* Debug */,
@@ -352,7 +352,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9685FE0F2F5E1E330035FE1D /* Build configuration list for PBXNativeTarget "VibeDesign" */ = {
+		9685FE0F2F5E1E330035FE1D /* Build configuration list for PBXNativeTarget "RoomShape" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9685FE102F5E1E330035FE1D /* Debug */,

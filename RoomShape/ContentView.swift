@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  VibeDesign
+//  RoomShape
 //
 //  Created by Federico Miras on 08/03/2026.
 //
